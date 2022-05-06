@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os
 
-FIGURE_DIR = './figures'
+FIGURE_DIR = '../figures'
 
 if not os.path.exists(FIGURE_DIR):
     os.mkdir(FIGURE_DIR)
@@ -50,7 +50,7 @@ def change_height(ax, new_value):
 
 
 
-df = pd.read_csv('./data/cfg_assessment.csv')
+df = pd.read_csv('../data/cfg_assessment.csv')
 df = df[(df.classification == "steady state")]
 df["type"] = df.timewaste.apply(lambda x: "overestimated" if x >= 5 else "underestimated" if x <= -5 else "exact")
 df["time"] = abs(df.timewaste)
@@ -196,14 +196,30 @@ def viz_overestimation_effect(df, technique, filename):
     fig, axs = plt.subplots(ncols=2, gridspec_kw={'width_ratios': [1.75, 1]})
 
     effects = [10, 25, 50, 100]
-    sns.barplot(x=["> {}".format(e) for e in effects],
-                y=[len(df[df.time >= e]) / len(df) * 100 for e in effects],
+    #f'{yi:.2f}'
+    ranges = [len(df[df.time < 10]) / len(df) * 100, len(df[(df.time >= 10) & (df.time < 25)]) / len(df) * 100,
+              len(df[(df.time >= 25) & (df.time < 50)]) / len(df) * 100, len(df[(df.time >= 50) & (df.time < 100)]) / len(df) * 100,
+              len(df[(df.time > 100)]) / len(df) * 100]
+
+    lables = [",10)", "[10,25)", "[25,50)", "[50,100)", "[100,"]
+
+    # sns.barplot(x=["> {}".format(e) for e in effects],
+    #             y=[len(df[df.time >= e]) / len(df) * 100 for e in effects],
+    #             palette=['gainsboro', 'silver', 'darkgray', 'grey'],
+    #             edgecolor="gray",
+    #             ax=axs[0]).set(title=technique)
+    sns.barplot(x=lables,
+                y=ranges,
                 palette=['gainsboro', 'silver', 'darkgray', 'grey'],
                 edgecolor="gray",
-                ax=axs[0])
+                ax=axs[0]).set(title=technique)
+    for c in axs[0].containers: axs[0].bar_label(c, fmt='%.2f')
+    # axs[0].bar_label(axs[0].containers[0])
+    # sns.barplot(y=df.time, data=df, ax=axs[0])
 
     axs[0].set_ylabel('Percentage of overestimated forks (%)')
     axs[0].set_xlabel('Time waste (sec)')
+    axs[0].tick_params(axis='x', rotation=45)
     axs[0].set_ylim(top=100)
     change_width(axs[0], 0.6)
 
@@ -228,18 +244,19 @@ def viz_overestimation_effect(df, technique, filename):
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.35)
 
-    plt.savefig(filename)
-    plt.close('all')
+    plt.show()
+    #plt.savefig(filename)
+    #plt.close('all')
 
 
 for technique in ['Dev', 'Cov', 'Ci', 'Divergence']:
-    viz_warmup_estimation(df, technique, "./{}/warmup_estimation_{}.pdf".format(FIGURE_DIR, technique))
-    viz_underestimation_effect(df[df.type == 'underestimated'],
-                               technique,
-                               "./{}/underestimation_effect_{}.pdf".format(FIGURE_DIR, technique))
+    # viz_warmup_estimation(df, technique, "./{}/warmup_estimation_{}.pdf".format(FIGURE_DIR, technique))
+    # viz_underestimation_effect(df[df.type == 'underestimated'],
+    #                           technique,
+    #                           "./{}/underestimation_effect_{}.pdf".format(FIGURE_DIR, technique))
     viz_overestimation_effect(df[df.type == 'overestimated'],
                                technique,
-                               "./{}/overestimation_effect_{}.pdf".format(FIGURE_DIR, technique))
+                               "./{}/new_overestimation_effect_{}.pdf".format(FIGURE_DIR, technique))
 
 
 
